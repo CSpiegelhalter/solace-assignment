@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
+import { AdvocatesResponse } from "./api/advocates/route";
 
 type Advocate = {
   id: string | number;
@@ -19,17 +20,35 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<null | string>(null);
 
+  const [debouncedTerm, setDebouncedTerm] = useState("")
+
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedTerm(searchTerm.trim()), 300);
+    return () => clearTimeout(id);
+  }, [searchTerm])
+
   useEffect(() => {
     const ac = new AbortController();
     (async () => {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch("/api/advocates", { signal: ac.signal });
+
+        const params = new URLSearchParams()
+
+        if (debouncedTerm) params.set('term', debouncedTerm)
+        params.set('page', String(page))
+        params.set('pageSize', String(pageSize))
+
+        const res = await fetch(`/api/advocates?${params.toString()}`, { signal: ac.signal });
         if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-        const json = await res.json();
-        const data = Array.isArray(json?.data) ? json.data : [];
-        setAdvocates(data);
+        const data: AdvocatesResponse = await res.json();
+        console.log(data)
+
+        setAdvocates(data.items);
       } catch (e: any) {
         if (e?.name !== "AbortError") setError("Failed to load advocates.");
       } finally {
@@ -37,31 +56,8 @@ export default function Home() {
       }
     })();
     return () => ac.abort();
-  }, []);
+  }, [page, pageSize, debouncedTerm]);
 
-  const filteredAdvocates = useMemo(() => {
-
-    const formattedTerm = searchTerm?.trim()?.toLowerCase()
-
-    if (!formattedTerm) return advocates
-
-    const has = (term: unknown) => {
-      return String(
-        Array.isArray(term) ? term.join(' ') : term ?? ''
-      ).toLowerCase().includes(formattedTerm)
-    }
-
-    return advocates.filter((e) =>
-      has(e.firstName) ||
-      has(e.lastName) ||
-      has(e.city) ||
-      has(e.degree) ||
-      has(e.specialties) ||
-      has(e.yearsOfExperience) ||
-      has(e.phoneNumber)
-    )
-
-  }, [advocates, searchTerm])
 
   return (
     <main style={{ margin: "24px" }}>
@@ -79,8 +75,8 @@ export default function Home() {
 
       {loading && <p style={{ marginTop: 16 }}>Loading…</p>}
       {error && <p style={{ color: "red", marginTop: 16 }}>{error}</p>}
-   
-   
+
+
       <table style={{ marginTop: 24, width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr>
@@ -94,17 +90,16 @@ export default function Home() {
           </tr>
         </thead>
         <tbody>
-          {filteredAdvocates.map((advocate) => {
+          {advocates.map((advocate) => {
             return (
-
-              <tr>
+              <tr key={advocate.id}>
                 <td>{advocate.firstName}</td>
                 <td>{advocate.lastName}</td>
                 <td>{advocate.city}</td>
                 <td>{advocate.degree}</td>
                 <td>
                   {advocate.specialties.map((s) => (
-                    <div>{s}</div>
+                    <div key={s}>{s}</div>
                   ))}
 
                 </td>
