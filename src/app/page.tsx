@@ -67,8 +67,8 @@ export default function Home() {
         <p>
           Searching for: <span id="search-term"></span>
         </p>
-        <input style={{ border: "1px solid black" }} onChange={(e) => setSearchTerm(e.target.value)} />
-        <button onClick={onClick}>Reset Search</button>
+        <input style={{ border: "1px solid black" }} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+        <button onClick={() => setSearchTerm('')}>Reset Search</button>
       </div>
       <br />
       <br />
