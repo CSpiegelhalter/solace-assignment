@@ -16,15 +16,27 @@ type Advocate = {
 export default function Home() {
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
   const [searchTerm, setSearchTerm] = useState("")
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<null | string>(null);
 
   useEffect(() => {
-    console.log("fetching advocates...");
-    fetch("/api/advocates").then((response) => {
-      response.json().then((jsonResponse) => {
-        setAdvocates(jsonResponse.data);
-        // setFilteredAdvocates(jsonResponse.data);
-      });
-    });
+    const ac = new AbortController();
+    (async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await fetch("/api/advocates", { signal: ac.signal });
+        if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+        const json = await res.json();
+        const data = Array.isArray(json?.data) ? json.data : [];
+        setAdvocates(data);
+      } catch (e: any) {
+        if (e?.name !== "AbortError") setError("Failed to load advocates.");
+      } finally {
+        setLoading(false);
+      }
+    })();
+    return () => ac.abort();
   }, []);
 
   const filteredAdvocates = useMemo(() => {
@@ -51,12 +63,6 @@ export default function Home() {
 
   }, [advocates, searchTerm])
 
-
-  const onClick = () => {
-    console.log(advocates);
-    // setFilteredAdvocates(advocates);
-  };
-
   return (
     <main style={{ margin: "24px" }}>
       <h1>Solace Advocates</h1>
@@ -70,9 +76,12 @@ export default function Home() {
         <input style={{ border: "1px solid black" }} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
         <button onClick={() => setSearchTerm('')}>Reset Search</button>
       </div>
-      <br />
-      <br />
-      <table>
+
+      {loading && <p style={{ marginTop: 16 }}>Loading…</p>}
+      {error && <p style={{ color: "red", marginTop: 16 }}>{error}</p>}
+   
+   
+      <table style={{ marginTop: 24, width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr>
             <th>First Name</th>
