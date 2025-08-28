@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AdvocatesResponse } from "./api/advocates/route";
 
 type Advocate = {
@@ -24,6 +24,8 @@ export default function Home() {
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [total, setTotal] = useState(0);
+
 
   useEffect(() => {
     const id = setTimeout(() => setDebouncedTerm(searchTerm.trim()), 300);
@@ -49,6 +51,7 @@ export default function Home() {
         console.log(data)
 
         setAdvocates(data.items);
+        setTotal(data.total)
       } catch (e: any) {
         if (e?.name !== "AbortError") setError("Failed to load advocates.");
       } finally {
@@ -57,6 +60,17 @@ export default function Home() {
     })();
     return () => ac.abort();
   }, [page, pageSize, debouncedTerm]);
+
+  const goTo = (p: number) => setPage(Math.min(Math.max(1, p), pageSize));
+
+  const maxPage = useMemo(
+    () => (total > 0 ? Math.max(1, Math.ceil(total / pageSize)) : 1),
+    [total, pageSize]
+  )
+
+  useEffect(() => {
+    if (page > maxPage) setPage(maxPage);
+  }, [maxPage, page]);
 
 
   return (
@@ -71,6 +85,24 @@ export default function Home() {
         </p>
         <input style={{ border: "1px solid black" }} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
         <button onClick={() => setSearchTerm('')}>Reset Search</button>
+      </div>
+
+      <div style={{ marginTop: 12, display: "flex", gap: 12, alignItems: "center" }}>
+        <label htmlFor="pageSize">Rows per page:</label>
+        <select
+          id="pageSize"
+          value={pageSize}
+          onChange={(e) => setPageSize(Number(e.target.value))}
+        >
+          {[5, 10, 20, 50, 100].map((n) => (
+            <option key={n} value={n}>{n}</option>
+          ))}
+        </select>
+        <span style={{ marginLeft: "auto" }}>
+          {total
+            ? `Showing page ${page} of ${maxPage} • ${total} total`
+            : "No results"}
+        </span>
       </div>
 
       {loading && <p style={{ marginTop: 16 }}>Loading…</p>}
@@ -111,6 +143,25 @@ export default function Home() {
           })}
         </tbody>
       </table>
+
+      <nav
+            aria-label="Pagination"
+            style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 12 }}
+          >
+            <button onClick={() => goTo(1)} disabled={page === 1} aria-label="First page">
+              « First
+            </button>
+            <button onClick={() => goTo(page - 1)} disabled={page === 1} aria-label="Previous page">
+              ‹ Prev
+            </button>
+            <span>Page {page} of {maxPage}</span>
+            <button onClick={() => goTo(page + 1)} disabled={page === maxPage} aria-label="Next page">
+              Next ›
+            </button>
+            <button onClick={() => goTo(pageSize)} disabled={page === maxPage} aria-label="Last page">
+              Last »
+            </button>
+          </nav>
     </main>
   );
 }
