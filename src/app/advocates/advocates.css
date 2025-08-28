@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+
+    /* Inputs and buttons */
+    .input {
+        @apply h-10 w-full rounded-xl border border-gray-300 bg-white px-3 shadow-sm outline-none focus:border-indigo-500;
+    }
+
+    .select {
+        @apply h-10 w-full rounded-xl border border-gray-300 bg-white px-3 shadow-sm outline-none focus:border-indigo-500;
+    }
+
+    .btn {
+        @apply rounded-lg border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50;
+    }
+
+    .btn:disabled {
+        @apply cursor-not-allowed opacity-50;
+    }
+
+    .btn-ghost {
+        @apply h-8 rounded-lg border border-gray-300 px-3 text-sm text-gray-700 hover:bg-gray-50;
+    }
+
+    .link {
+        @apply text-indigo-700 underline underline-offset-2;
+    }
+
+    /* Surfaces */
+    .card {
+        @apply rounded-2xl border border-gray-200 bg-white shadow-sm;
+    }
+
+    .alert {
+        @apply mt-4 rounded-xl border p-3 text-sm shadow-sm;
+    }
+
+    .alert-info {
+        @apply border-gray-200 bg-white text-gray-700;
+    }
+
+    .alert-error {
+        @apply border-red-200 bg-red-50 text-red-700;
+    }
+
+    /* Table */
+    .table {
+        @apply min-w-full border-separate border-spacing-0 text-sm;
+    }
+
+    .thead {
+        @apply sticky top-0 bg-white;
+    }
+
+    .th {
+        @apply text-left text-gray-600 border-b border-gray-200 px-3 py-2 font-medium;
+    }
+
+    .td {
+        @apply px-3 py-2;
+    }
+
+    .row {
+        @apply hover:bg-gray-50;
+    }
+
+    .row-alt {
+        @apply bg-gray-50 hover:bg-gray-100;
+    }
+
+    /* Chips */
+    .pill {
+        @apply rounded-full border border-gray-200 bg-gray-100 px-2.5 py-1 text-xs text-gray-700;
+    }
+
+    .pill-xs {
+        @apply px-2 py-0.5 text-[11px];
+    }
+}
